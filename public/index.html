@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Web Chat</title>
+    </head>
+    <body>
+        <div id="registration-form" style="display: none;">
+            <input id="register-username" placeholder="Username">
+            <input id="register-password" type="password" placeholder="Password">
+            <button id="register-btn">Register</button>
+        </div>
+
+        <div id="chat-room" style="display: none;">
+            <ul id="messages"></ul>
+            <form id="form" action="">
+                <input id="input" autocomplete="off">
+                <button>Send</button>
+            </form>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            const socket = io();
+            let username;
+
+            const registrationForm = document.getElementById('registration-form');
+            const chatRoom = document.getElementById('chat-room');
+            const registerUsernameInput = document.getElementById('register-username');
+            const registerPasswordInput = document.getElementById('register-password');
+            const registerBtn = document.getElementById('register-btn');
+            const form = document.getElementById('form');
+            const input = document.getElementById('input');
+            const messages = document.getElementById('messages');
+            registrationForm.style.display = 'block';
+
+            registerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const username = registerUsernameInput.value;
+                const password = registerPasswordInput.value;
+                socket.emit('register', { username, password });
+            });
+
+            socket.on('registrationSuccess', () => {
+                registrationForm.style.display = 'none';
+                chatRoom.style.display = 'block';
+                username = registerUsernameInput.value;
+            });
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (input.value) {
+                socket.emit('chat message', { username, message: input.value });
+                input.value = '';
+                }
+            });
+
+            socket.on('chat message', function({ username, message }) {
+                const item = document.createElement('li');
+                item.textContent = '${username}: ${message}';
+                messages.appendChild(item);
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+        </script>
+    </body>
+</html>
